@@ -25,6 +25,10 @@
       Please wait. loading...
     </h2>
     <!-- <h1>{{ this.get_length }}</h1> -->
+    <div v-show="this.get_length <= 0"> 
+      <img src='./assets/done.gif'> <br />
+      All Done for Now. Please check back latter! <br />
+    </div>
     <Review
       @correct-answer="correct_answer"
       @wrong-answer="wrong_answer"
@@ -70,6 +74,9 @@ export default {
     },
   },
   methods: {
+    check_show(task) {
+      return moment().diff(task.due_date, "hours");
+    },
     correct_answer(task) {
       if (this.shouldspeak) {
         this.speakthisin("Thats Correct");
@@ -151,7 +158,9 @@ export default {
       }
       this.speakthisin(msg);
     },
-
+    filtertasks(){
+        this.questions = this.questions.filter((e) => this.check_show(e) > 0);
+    },
     removetask(id) {
       this.questions = this.questions.filter((e) => e.id !== id);
     },
@@ -172,6 +181,7 @@ export default {
           var data = response.data;
           this.shuffleArray(data);
           this.questions = data;
+          this.filtertasks();
         });
       this.isloading = false;
     },

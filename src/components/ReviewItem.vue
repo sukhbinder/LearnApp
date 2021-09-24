@@ -7,22 +7,35 @@
           <!-- <h5>{{ item.answer }}</h5> -->
         </div>
         <div v-if="!item.isvoiceonly">
-        <input type="text" v-model="useranswer" @change="check_ans" />
-        <a href="javascript:void(0);"  v-on:click="$emit('speak-this', this.item)" ><i class="fa fa-microphone"></i></a>
-        {{ this.useranswer }}
-        <hr />
-      </div>
-      <div v-else>
-        <input type="text" v-model="useranswer" @change="check_ans" @focus="$emit('speak-this', this.item)"/>
-        <a href="javascript:void(0);"  v-on:click="$emit('speak-this', this.item)" ><i class="fa fa-microphone"></i></a>
-        {{ this.useranswer }}
-        <hr />
+          <input type="text" v-model="useranswer" @change="check_ans" />
+          <a
+            href="javascript:void(0);"
+            v-on:click="$emit('speak-this', this.item)"
+            ><i class="fa fa-microphone"></i
+          ></a>
+          {{ this.useranswer }}
+          <hr />
+        </div>
+        <div v-else>
+          <input
+            type="text"
+            v-model="useranswer"
+            @change="check_ans"
+            @focus="$emit('speak-this', this.item)"
+          />
+          <a
+            href="javascript:void(0);"
+            v-on:click="$emit('speak-this', this.item)"
+            ><i class="fa fa-microphone"></i
+          ></a>
+          {{ this.useranswer }}
+          <hr />
+        </div>
       </div>
     </div>
-  </div>
-  <div v-else>
-
-  </div>
+    <div v-else>
+      ALL DONE
+    </div>
   </div>
 </template>
 
