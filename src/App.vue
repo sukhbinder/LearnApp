@@ -49,7 +49,7 @@ axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.headers.post["Content-Type"] =
   "application/x-www-form-urlencoded";
 
-var NUMBERS = [1, 8, 20, 40, 72, 180, 360, 720];
+var NUMBERS = [1, 8, 20, 40, 72, 100, 180, 360, 500, 720];
 
 export default {
   name: "App",
@@ -112,7 +112,7 @@ export default {
       // var task = this.questions[id];
       task.inum++;
       if (task.inum > NUMBERS.length) {
-        task.inum = NUMBERS.length;
+        task.inum = NUMBERS.length-1;
       }
     },
     decrement(task) {
@@ -124,7 +124,7 @@ export default {
     },
     update_duedate(task) {
       // var task = this.questions[id];
-      task.due_date = moment().add(NUMBERS[task.inum], "hours").format();
+      task.due_date = moment().add(NUMBERS[task.inum-1], "hours").format();
     },
     iscorrect(task, useranswer) {
       return (

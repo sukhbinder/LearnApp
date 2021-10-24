@@ -22,6 +22,7 @@
             v-model="useranswer"
             @change="check_ans"
             @focus="$emit('speak-this', this.item)"
+            autofocus
           />
           <a
             href="javascript:void(0);"
