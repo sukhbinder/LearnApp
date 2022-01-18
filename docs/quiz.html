@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+    <style>
+        h6:hover {
+            cursor: pointer;
+            background-color: #7fff00
+        }
+
+        .float-container {
+            border: 3px solid #fff;
+            padding: 20px;
+        }
+
+        .float-child-left {
+            width: 20%;
+            float: left;
+            padding: 20px;
+            /* border: 2px solid red; */
+        }
+
+        .float-child-right {
+            width: 70%;
+            float: left;
+            padding: 20px;
+            /* border: 2px solid red; */
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+
+    </div>
+    <footer>
+        <p><a href="https://sukhbinder.github.io/LearnApp/">Review</a> | <a
+                href="https://learninghub.pythonanywhere.com/spelling/upload">Upload</a></p>
+    </footer>
+
+    <script>
+
+        Vue.component("Side-Bar", {
+            props: ["subjects"],
+            template: `
+    <div class="subjects">
+          <div v-for ="subject in subjects" :key=subject[0]>
+            <p class="card-text"><h6 @click="$emit('select-subject', subject[0])"> {{ subject[1] }} </h6><p>
+            </div>
+
+        </div>
+    `
+        });
+
+        Vue.component("Quiz-Box", {
+            props: {
+                "subject_id": Number,
+            },
+            data: function () {
+                return {
+                    no_of_questions: 15,
+                    currentQuestion: 0,
+                    showScore: false,
+                    score: 0,
+                    countDown: 30,
+                    timer: null,
+                    maxval: 25,
+                    startQuiz: false,
+                    // subject_id: 17,
+                    questions: [],
+                    useranswer: null,
+                    delta: 5,
+                    // subjects
+                    wrong_answers: [],
+                }
+            },
+            template: `
+<div class="d-flex justify-content-center">
+    <div v-if="showScore">
+        <div class="card" title="Results" style="max-width: 20rem">
+           <h1> You Scored {{ score }} of {{ questions.length }} </h1>
+        </div>
+        <p>
+      
+
+            <ul id="example-2">
+                <li v-for="(item, index) in wrong_answers">
+                {{ item[0] }} - {{ item[1] }} - {{ item[2] }}
+                </li>
+                </ul>
+        </p>
+
+        <p class="card-text"></p>
+                <button class="ans-option-btn" type="button" @click="startQuizFunc()">
+                    Start Quiz
+                </button>
+    </div>
+    <div class="card-q" v-else>
+        <span v-if="!startQuiz">
+            <div title="Simple Quiz Application" style="max-width: 20rem" class="mb-2">
+                <p class="card-text"></p>
+                <button class="ans-option-btn" type="button" @click="startQuizFunc()">
+                    Start Quiz
+                </button>
+            </div>
+        </span>
+        <span v-else>
+            <div title="Simple Quiz Application" style="max-width: 20rem" class="mb-2">
+                <p class="card-text">
+                    Question No.{{ currentQuestion + 1 }} of {{ questions.length }}
+                </p>
+                <br />
+
+                <p class="card-text">
+                    <span style="font-size: 40px"><strong>{{ countDown }} </strong></span>
+                    <br />
+                    <progress variant="warning" :max="maxval" :value="countDown" height="12px"></progress>
+
+                </p>
+                <p class="card-text">
+                    {{ questions[currentQuestion].question }}
+                </p>
+                <div class="answer-section">
+                    <input type="text" v-model="useranswer" @change="check_ans" autofocus/>
+        <!-- <button
+              :key="index"
+              v-for="(option, index) in questions[currentQuestion]
+                .answerOptions"
+              @click="handleAnswerClick(option.isCorrect)"
+              class="ans-option-btn"
+              variant="primary"
+            >
+              {{ option.answerText }}
+        </button> -->
+                </div>
+            </div>
+        </span>
+    </div>
+</div>
+        `,
+
+            methods: {
+                shuffleArray: function (array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                },
+                fetch_questions() {
+                    axios
+                        .get('https://learninghub.pythonanywhere.com/spelling/subject/' + this.subject_id)
+                        .then(response => {
+                            data = response.data;
+                            this.shuffleArray(data);
+                            this.questions = data.slice(0, this.no_of_questions);
+                            // console.log(this.questions)
+                        })
+                        .catch(error => {
+                            console.log(error);
+                            this.errored = true
+                        })
+                        .finally(() => this.loading = false)
+                },
+                speakthisin: function (text) {
+                    let utter = new SpeechSynthesisUtterance();
+                    utter.lang = 'en-US';
+                    utter.text = text;
+                    // utter.volume = 0.5;
+                    // speak
+                    window.speechSynthesis.speak(utter);
+                },
+                check_ans() {
+                    let question = this.questions[this.currentQuestion]
+                    iscorrect = question.answer.toUpperCase().trim() === this.useranswer.toUpperCase().trim()
+                    this.handleAnswerClick(iscorrect);
+                    this.useranswer = "";
+                },
+                startQuizFunc() {
+                    this.init();
+                    this.fetch_questions()
+                    this.startQuiz = true;
+                    this.countDownTimer();
+                },
+                init() {
+                    this.showScore = false;
+                    this.currentQuestion = 0;
+                    this.score = 0;
+                    this.wrong_answers = []
+                    clearTimeout(this.timer);
+                },
+
+                add_wrong_answer() {
+                    let question = this.questions[this.currentQuestion]
+                    this.wrong_answers.push([question.question, question.answer, this.useranswer])
+                },
+                handleAnswerClick(isCorrect) {
+                    clearTimeout(this.timer);
+                    let nextQuestion = this.currentQuestion + 1;
+                    if (isCorrect) {
+                        this.score = this.score + 1;
+                        this.speakthisin("Thats correct");
+                    } else {
+                        this.add_wrong_answer();
+                    }
+                    if (nextQuestion < this.questions.length) {
+
+                        this.currentQuestion = nextQuestion;
+                        let question = this.questions[this.currentQuestion]
+                        nans = question.answer.split(" ");
+
+                        this.countDown = this.maxval + this.delta * (nans.length - 1);
+                        // console.log(this.countDown)
+                        // clear user answer
+                        this.useranswer = ""
+                        this.countDownTimer();
+                    } else {
+                        // localStorage.removeItem('qattended')
+                        this.showScore = true;
+                        // localStorage.setItem('testComplete',this.showScore)
+                    }
+                },
+                countDownTimer() {
+                    if (this.countDown > 0) {
+                        this.timer = setTimeout(() => {
+                            this.countDown -= 1;
+                            this.countDownTimer();
+                        }, 1000);
+                    } else {
+                        this.speakthisin("Times Up");
+                        this.handleAnswerClick(false);
+                    }
+                },
+
+            },
+
+        });
+
+        let app = new Vue({
+            "el": "#app",
+            "data": {
+                subjects: [],
+                questions: [],
+                subject_id: 1,
+
+            },
+            template: `
+
+            <div class="float-container">
+
+                <div class="float-child-left">
+                    <div class="green"><Side-Bar @select-subject=select_subject :subjects="subjects"> </Side-Bar></div>
+                </div>
+  
+                <div class="float-child-right">
+                    <div class="blue"><Quiz-Box :subject_id="subject_id"> </Quiz-Box></div>
+                </div>
+         
+                {{ subject_name(subject_id) }}
+
+        </div>
+    `,
+            methods: {
+
+                subject_name(id) {
+                    for (let i = 0; i < this.subjects.length; i++) {
+                        if (this.subjects[i][0] == id ){
+                            return this.subjects[i][1]
+                        }
+                    }
+                },
+
+                select_subject(id) {
+                    this.subject_id = id
+                    // this.fetch_questions()
+                    // console.log(id)
+
+                },
+                fetch_subjects() {
+                    axios
+                        .get("https://learninghub.pythonanywhere.com/spelling/subjects")
+                        .then(response => {
+                            data = response.data;
+                            this.subjects = data
+                            data.sort((a, b) => { return b[1].toLowerCase().localeCompare(a[1].toLowerCase()) });
+                            // console.log(this.subjects);
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        })
+                },
+
+            },
+            created() {
+                this.fetch_subjects();
+                // this.fetch_questions();
+            }
+        });
+
+
+
+    </script>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
